@@ -7,5 +7,8 @@ type Config struct {
 }
 
 func (app *Config) Routes() {
-
+	app.Router.POST("/project", app.createProjectHandler())
+	app.Router.GET("/project/:projectId", app.getProjectHandler())
+	app.Router.PUT("/project/:projectId", app.updateProjectHandler())
+	app.Router.DELETE("/project/:projectId", app.deleteProjectHandler())
 }
