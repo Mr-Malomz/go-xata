@@ -111,7 +111,6 @@ func (app *Config) updateProjectService(updatedProject *data.ProjectRequest, pro
 }
 
 func (app *Config) deleteProjectService(projectId string) (string, error) {
-
 	//api request
 	fullURL := fmt.Sprintf("%s:main/tables/Project/data/%s", baseURL, projectId)
 	client := &http.Client{}

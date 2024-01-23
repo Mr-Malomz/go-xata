@@ -15,6 +15,5 @@ type ProjectRequest struct {
 
 type ProjectResponse struct {
 	Id      string `json:"id,omitempty"`
-	Message string `json:"message,omitempty"`
 }
 
