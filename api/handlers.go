@@ -43,7 +43,6 @@ func (app *Config) getProjectHandler() gin.HandlerFunc {
 		defer cancel()
 
 		data, err := app.getProjectService(projectId)
-
 		if err != nil {
 			app.errorJSON(ctx, err)
 			return
@@ -69,7 +68,6 @@ func (app *Config) updateProjectHandler() gin.HandlerFunc {
 		}
 
 		data, err := app.updateProjectService(&newProject, projectId)
-
 		if err != nil {
 			app.errorJSON(ctx, err)
 			return
@@ -86,7 +84,6 @@ func (app *Config) deleteProjectHandler() gin.HandlerFunc {
 		defer cancel()
 
 		data, err := app.deleteProjectService(projectId)
-
 		if err != nil {
 			app.errorJSON(ctx, err)
 			return

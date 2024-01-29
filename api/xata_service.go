@@ -3,7 +3,6 @@ package api
 import (
 	"bytes"
 	"encoding/json"
-
 	"fmt"
 	"go-xata/data"
 	"io/ioutil"
@@ -12,6 +11,49 @@ import (
 
 var xataAPIKey = GetEnvVariable("XATA_API_KEY")
 var baseURL = GetEnvVariable("XATA_DATABASE_URL")
+
+func createRequest(method, url string, bodyData *bytes.Buffer) (*http.Request, error) {
+	var req *http.Request
+	var err error
+
+	if method == "GET" || method == "DELETE" {
+		req, err = http.NewRequest(method, url, nil)
+	} else {
+		req, err = http.NewRequest(method, url, bodyData)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", xataAPIKey))
+
+	return req, nil
+}
+
+func makeRequest(req *http.Request, target interface{}) error {
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if target != nil {
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+
+		err = json.Unmarshal(body, target)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
 
 func (app *Config) createProjectService(newProject *data.ProjectRequest) (*data.ProjectResponse, error) {
 	createProject := data.ProjectResponse{}
@@ -24,54 +66,34 @@ func (app *Config) createProjectService(newProject *data.ProjectRequest) (*data.
 	postBody, _ := json.Marshal(jsonData)
 	bodyData := bytes.NewBuffer(postBody)
 
-	//api request
 	fullURL := fmt.Sprintf("%s:main/tables/Project/data", baseURL)
-	client := &http.Client{}
-	req, _ := http.NewRequest("POST", fullURL, bodyData)
-	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", xataAPIKey))
-
-	resp, err := client.Do(req)
+	req, err := createRequest("POST", fullURL, bodyData)
 	if err != nil {
 		return nil, err
 	}
 
-	body, err := ioutil.ReadAll(resp.Body)
+	err = makeRequest(req, &createProject)
 	if err != nil {
 		return nil, err
 	}
 
-	err = json.Unmarshal([]byte(body), &createProject)
-	if err != nil {
-		return nil, err
-	}
 	return &createProject, nil
 }
 
 func (app *Config) getProjectService(projectId string) (*data.Project, error) {
 	projectDetails := data.Project{}
 
-	//api request
 	fullURL := fmt.Sprintf("%s:main/tables/Project/data/%s", baseURL, projectId)
-	client := &http.Client{}
-	req, _ := http.NewRequest("GET", fullURL, nil)
-	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", xataAPIKey))
-
-	resp, err := client.Do(req)
+	req, err := createRequest("GET", fullURL, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	body, err := ioutil.ReadAll(resp.Body)
+	err = makeRequest(req, &projectDetails)
 	if err != nil {
 		return nil, err
 	}
 
-	err = json.Unmarshal([]byte(body), &projectDetails)
-	if err != nil {
-		return nil, err
-	}
 	return &projectDetails, nil
 }
 
@@ -86,44 +108,28 @@ func (app *Config) updateProjectService(updatedProject *data.ProjectRequest, pro
 	postBody, _ := json.Marshal(jsonData)
 	bodyData := bytes.NewBuffer(postBody)
 
-	//api request
 	fullURL := fmt.Sprintf("%s:main/tables/Project/data/%s", baseURL, projectId)
-	client := &http.Client{}
-	req, _ := http.NewRequest("PUT", fullURL, bodyData)
-	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", xataAPIKey))
-
-	resp, err := client.Do(req)
+	req, err := createRequest("PUT", fullURL, bodyData)
 	if err != nil {
 		return nil, err
 	}
 
-	body, err := ioutil.ReadAll(resp.Body)
+	err = makeRequest(req, &updateProject)
 	if err != nil {
 		return nil, err
 	}
 
-	err = json.Unmarshal([]byte(body), &updateProject)
-	if err != nil {
-		return nil, err
-	}
 	return &updateProject, nil
 }
 
 func (app *Config) deleteProjectService(projectId string) (string, error) {
-	//api request
 	fullURL := fmt.Sprintf("%s:main/tables/Project/data/%s", baseURL, projectId)
-	client := &http.Client{}
-	req, _ := http.NewRequest("DELETE", fullURL, nil)
-	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", xataAPIKey))
-
-	resp, err := client.Do(req)
+	req, err := createRequest("DELETE", fullURL, nil)
 	if err != nil {
 		return "", err
 	}
 
-	_, err = ioutil.ReadAll(resp.Body)
+	err = makeRequest(req, nil)
 	if err != nil {
 		return "", err
 	}

@@ -36,12 +36,10 @@ func (app *Config) validateJsonBody(c *gin.Context, data any) error {
 	if err := validate.Struct(&data); err != nil {
 		return err
 	}
-
 	return nil
 }
 
 func (app *Config) writeJSON(c *gin.Context, status int, data any) {
-
 	c.JSON(status, jsonResponse{Status: status, Message: "success", Data: data})
 }
 
@@ -51,6 +49,5 @@ func (app *Config) errorJSON(c *gin.Context, err error, status ...int) {
 	if len(status) > 0 {
 		statusCode = status[0]
 	}
-
 	c.JSON(statusCode, jsonResponse{Status: statusCode, Message: err.Error()})
 }
